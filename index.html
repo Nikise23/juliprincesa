@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎁 Regalos Especiales</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Fondo con imágenes -->
+    <div class="hero-background">
+        <div class="hero-image hero-image-1"></div>
+        <div class="hero-image hero-image-2"></div>
+        <div class="hero-overlay"></div>
+    </div>
+    
+    <div class="container">
+        <h1 class="title">🎉🎈 Feliz cumpleaños amor de mi vida ❤️💕🎂</h1>
+        <p class="subtitle">Elige un regalo para descubrir tu sorpresa especial</p>
+        
+        <div class="gifts-container">
+            <button class="gift-btn" id="gift1" style="background-image: url('images/gift1-btn-1.jpg'), url('images/gift1-btn-2.jpg');">
+                <div class="gift-overlay"></div>
+                <span class="gift-number">1</span>
+                <span class="gift-text">Regalo 1</span>
+            </button>
+            
+            <button class="gift-btn" id="gift2" style="background-image: url('images/gift2-btn-1.jpg'), url('images/gift2-btn-2.jpg');">
+                <div class="gift-overlay"></div>
+                <span class="gift-number">2</span>
+                <span class="gift-text">Regalo 2</span>
+            </button>
+            
+            <button class="gift-btn" id="gift3" style="background-image: url('images/gift3-btn-1.jpg'), url('images/gift3-btn-2.jpg');">
+                <div class="gift-overlay"></div>
+                <span class="gift-number">3</span>
+                <span class="gift-text">Regalo 3</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar el regalo -->
+    <div class="modal" id="giftModal">
+        <div class="modal-content">
+            <button class="close-btn" id="closeModal">&times;</button>
+            <div class="gift-reveal" id="giftReveal">
+                <div class="gift-image-container" id="giftImageContainer"></div>
+                <div class="gift-message" id="giftMessage"></div>
+                <audio id="giftAudio" controls autoplay></audio>
+                <button class="next-gift-btn" id="nextGiftBtn" style="display: none;">Ver Siguiente Regalo ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

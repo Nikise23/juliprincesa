@@ -1,0 +1,8 @@
+Coloca aquí las imágenes de fondo para cada regalo:
+
+- gift1.jpg (imagen de fondo para el regalo 1)
+- gift2.jpg (imagen de fondo para el regalo 2)
+- gift3.jpg (imagen de fondo para el regalo 3)
+
+O actualiza las rutas en el archivo script.js si usas otros nombres.
+

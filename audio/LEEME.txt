@@ -1,0 +1,8 @@
+Coloca aquí las canciones para cada regalo:
+
+- gift1.mp3 (canción para el regalo 1)
+- gift2.mp3 (canción para el regalo 2)
+- gift3.mp3 (canción para el regalo 3)
+
+O actualiza las rutas en el archivo script.js si usas otros nombres o formatos (mp3, ogg, wav).
+
