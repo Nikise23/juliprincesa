@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Práctico SQL Server - NewLibrary</title>
+    <title>Práctico SQL Server - library</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -683,7 +683,7 @@
                 <div class="brand-icon">SQL</div>
                 <div>
                     <h1>Práctico SQL Server</h1>
-                    <p>Base NewLibrary - 22 puntos guiados</p>
+                    <p>Base library - 22 puntos guiados</p>
                 </div>
             </div>
 
@@ -713,45 +713,42 @@
                 </p>
                 <div class="hero-actions">
                     <button class="btn primary" id="startBtn">Empezar por el punto 1</button>
-                    <a class="btn" href="#modelo">Ver modelo asumido</a>
+                    <a class="btn" href="#modelo">Ver modelo del script</a>
                     <a class="btn" href="#script-profe">Cargar script del profe</a>
                     <a class="btn" href="#repaso">Practicar con tarjetas</a>
                 </div>
             </section>
 
             <section class="panel" id="modelo">
-                <h3>Modelo base de referencia</h3>
+                <h3>Modelo real del script del profesor</h3>
                 <p>
-                    El PDF nombra estas tablas: <strong>Estudiantes</strong>, <strong>Autores</strong>, <strong>Tipos</strong>,
-                    <strong>Libros</strong> y <strong>Prestamos</strong>. Como el diagrama queda embebido como imagen, la guía usa
-                    estos nombres de columnas coherentes con los enunciados. Si tu script del profesor tiene algún nombre distinto,
-                    cambiá el alias/columna, pero la lógica de cada consulta es la misma.
+                    El archivo <strong>InsertTPLibrary.sql</strong> carga datos sobre la base <strong>library</strong> y usa estas tablas: <strong>Estudiantes</strong>, <strong>Autores</strong>, <strong>Tipos</strong>, <strong>Libros</strong> y <strong>Prestamos</strong>. Ajusté las consultas a los nombres reales del script del profesor.
                 </p>
                 <div class="schema-grid">
                     <div class="table-card">
                         <strong>Estudiantes</strong>
                         <span>studentId PK</span>
                         <span>Nombre, Apellido</span>
-                        <span>Genero, Clase</span>
                         <span>FechaNacimiento</span>
+                        <span>Genero, Clase</span>
+                        <span>Punto</span>
                     </div>
                     <div class="table-card">
                         <strong>Autores</strong>
                         <span>authorId PK</span>
-                        <span>NombreAutor</span>
-                        <span>ApellidoAutor</span>
+                        <span>Nombre</span>
+                        <span>Apellido</span>
                     </div>
                     <div class="table-card">
                         <strong>Tipos</strong>
                         <span>typeId PK</span>
-                        <span>NombreTipo</span>
+                        <span>DescripcionTipo</span>
                     </div>
                     <div class="table-card">
                         <strong>Libros</strong>
                         <span>bookId PK</span>
                         <span>NombreLibro</span>
-                        <span>CantPaginas, Puntos</span>
-                        <span>FechaCompra</span>
+                        <span>CantPaginas, Punto</span>
                         <span>authorId FK, typeId FK</span>
                     </div>
                     <div class="table-card">
@@ -760,6 +757,7 @@
                         <span>studentId FK</span>
                         <span>bookId FK</span>
                         <span>DiaPrestamo</span>
+                        <span>DiaCompra</span>
                     </div>
                 </div>
                 <div class="code-block">
@@ -809,7 +807,7 @@
                         </div>
                         <div class="path-step">
                             <b>2</b>
-                            <p>Copiá la consulta en SQL Server y ejecutala contra tu base <strong>NewLibrary</strong>.</p>
+                            <p>Copiá la consulta en SQL Server y ejecutala contra tu base <strong>library</strong>.</p>
                         </div>
                         <div class="path-step">
                             <b>3</b>
@@ -844,38 +842,38 @@
     </div>
 
     <script>
-        const setupSql = `CREATE DATABASE NewLibrary;
+        const setupSql = `CREATE DATABASE [library];
 GO
 
-USE NewLibrary;
+USE [library];
 GO
 
 CREATE TABLE dbo.Estudiantes (
     studentId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Estudiantes PRIMARY KEY,
     Nombre VARCHAR(60) NOT NULL,
     Apellido VARCHAR(60) NOT NULL,
+    FechaNacimiento DATE NOT NULL,
     Genero CHAR(1) NOT NULL CONSTRAINT CK_Estudiantes_Genero CHECK (Genero IN ('M', 'F')),
     Clase VARCHAR(30) NOT NULL,
-    FechaNacimiento DATE NOT NULL
+    Punto INT NULL
 );
 
 CREATE TABLE dbo.Autores (
     authorId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Autores PRIMARY KEY,
-    NombreAutor VARCHAR(60) NOT NULL,
-    ApellidoAutor VARCHAR(60) NOT NULL
+    Nombre VARCHAR(60) NOT NULL,
+    Apellido VARCHAR(60) NOT NULL
 );
 
 CREATE TABLE dbo.Tipos (
     typeId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Tipos PRIMARY KEY,
-    NombreTipo VARCHAR(60) NOT NULL
+    DescripcionTipo VARCHAR(60) NOT NULL
 );
 
 CREATE TABLE dbo.Libros (
     bookId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Libros PRIMARY KEY,
     NombreLibro VARCHAR(120) NOT NULL,
     CantPaginas INT NOT NULL,
-    Puntos INT NULL,
-    FechaCompra DATE NOT NULL,
+    Punto INT NULL,
     authorId INT NOT NULL,
     typeId INT NOT NULL,
     CONSTRAINT FK_Libros_Autores FOREIGN KEY (authorId) REFERENCES dbo.Autores(authorId),
@@ -886,7 +884,8 @@ CREATE TABLE dbo.Prestamos (
     borrowId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Prestamos PRIMARY KEY,
     studentId INT NOT NULL,
     bookId INT NOT NULL,
-    DiaPrestamo DATE NOT NULL,
+    DiaPrestamo DATETIME NOT NULL,
+    DiaCompra DATETIME NOT NULL,
     CONSTRAINT FK_Prestamos_Estudiantes FOREIGN KEY (studentId) REFERENCES dbo.Estudiantes(studentId),
     CONSTRAINT FK_Prestamos_Libros FOREIGN KEY (bookId) REFERENCES dbo.Libros(bookId)
 );`;
@@ -899,7 +898,7 @@ CREATE TABLE dbo.Prestamos (
                 focus: "DDL y relaciones",
                 task: "Interpretar el modelo y crear todas las tablas con claves principales y foráneas. Después cargar datos en el orden indicado.",
                 explanation: "Las claves primarias identifican cada fila. Las claves foráneas conectan tablas y obligan a cargar primero las tablas padre. Por eso Prestamos se carga al final: necesita estudiantes y libros ya existentes.",
-                sql: `USE NewLibrary;
+                sql: `USE [library];
 GO
 
 -- Si ya usaste el script base de arriba, este punto queda cubierto.
@@ -910,20 +909,20 @@ GO
 -- 4) Libros
 -- 5) Prestamos
 
-INSERT INTO dbo.Estudiantes (Nombre, Apellido, Genero, Clase, FechaNacimiento)
-VALUES ('Ana', 'Paz', 'F', 'A', '2001-05-10');
+INSERT INTO dbo.Estudiantes (Nombre, Apellido, FechaNacimiento, Genero, Clase, Punto)
+VALUES ('Ana', 'Paz', '2001-05-10', 'F', 'A', 100);
 
-INSERT INTO dbo.Autores (NombreAutor, ApellidoAutor)
+INSERT INTO dbo.Autores (Nombre, Apellido)
 VALUES ('Julio', 'Cortazar');
 
-INSERT INTO dbo.Tipos (NombreTipo)
+INSERT INTO dbo.Tipos (DescripcionTipo)
 VALUES ('Novela');
 
-INSERT INTO dbo.Libros (NombreLibro, CantPaginas, Puntos, FechaCompra, authorId, typeId)
-VALUES ('Rayuela', 635, 3, '2022-08-15', 1, 1);
+INSERT INTO dbo.Libros (NombreLibro, CantPaginas, Punto, authorId, typeId)
+VALUES ('Rayuela', 635, 3, 1, 1);
 
-INSERT INTO dbo.Prestamos (studentId, bookId, DiaPrestamo)
-VALUES (1, 1, '2022-09-01');`,
+INSERT INTO dbo.Prestamos (studentId, bookId, DiaPrestamo, DiaCompra)
+VALUES (1, 1, '2022-09-01', '2022-09-15');`,
                 tip: "Si aparece un error de FK, revisá que el ID que insertás exista en la tabla padre.",
                 checklist: ["Identifiqué todas las PK.", "Identifiqué todas las FK.", "Cargué datos respetando el orden padre-hijo."]
             },
@@ -932,7 +931,7 @@ VALUES (1, 1, '2022-09-01');`,
                 title: "Agregar CHECK y DEFAULT",
                 category: "Restricciones",
                 focus: "ALTER TABLE",
-                task: "Agregar un CHECK para que CantPaginas sea mayor a 0 y un DEFAULT de 1 para Puntos.",
+                task: "Agregar un CHECK para que CantPaginas sea mayor a 0 y un DEFAULT de 1 para Punto.",
                 explanation: "CHECK valida datos antes de guardarlos. DEFAULT completa un valor cuando el INSERT no lo informa. En SQL Server el DEFAULT se agrega sobre una columna con FOR.",
                 sql: `ALTER TABLE dbo.Libros
 ADD CONSTRAINT CK_Libros_CantPaginas_Positive
@@ -940,15 +939,15 @@ CHECK (CantPaginas > 0);
 GO
 
 ALTER TABLE dbo.Libros
-ADD CONSTRAINT DF_Libros_Puntos
-DEFAULT (1) FOR Puntos;
+ADD CONSTRAINT DF_Libros_Punto
+DEFAULT (1) FOR Punto;
 GO
 
 -- Prueba: este INSERT debería fallar por CantPaginas = 0.
-INSERT INTO dbo.Libros (NombreLibro, CantPaginas, FechaCompra, authorId, typeId)
-VALUES ('Libro invalido', 0, '2022-08-01', 1, 1);`,
-                tip: "El DEFAULT afecta inserts nuevos. Si ya había filas con NULL en Puntos, actualizalas con UPDATE.",
-                checklist: ["Probé un valor inválido.", "Verifiqué que Puntos tome 1 si no lo envío."]
+INSERT INTO dbo.Libros (NombreLibro, CantPaginas, authorId, typeId)
+VALUES ('Libro invalido', 0, 1, 1);`,
+                tip: "El DEFAULT afecta inserts nuevos. Si ya había filas con NULL en Punto, actualizalas con UPDATE.",
+                checklist: ["Probé un valor inválido.", "Verifiqué que Punto tome 1 si no lo envío."]
             },
             {
                 id: 3,
@@ -1019,7 +1018,7 @@ FROM dbo.Prestamos;`,
                 category: "JOIN",
                 focus: "JOIN, DATEDIFF y MONTH",
                 task: "Informar préstamos con datos del estudiante y libro para libros comprados en agosto.",
-                explanation: "La consulta necesita unir Prestamos con Estudiantes y Libros. MONTH(FechaCompra) = 8 filtra compras realizadas en agosto.",
+                explanation: "La consulta necesita unir Prestamos con Estudiantes y Libros. En el script del profesor la compra está en Prestamos.DiaCompra, por eso MONTH(p.DiaCompra) = 8 filtra compras realizadas en agosto.",
                 sql: `SELECT
     p.borrowId,
     p.studentId,
@@ -1032,8 +1031,8 @@ INNER JOIN dbo.Estudiantes AS e
     ON e.studentId = p.studentId
 INNER JOIN dbo.Libros AS l
     ON l.bookId = p.bookId
-WHERE MONTH(l.FechaCompra) = 8;`,
-                tip: "Si querés agosto de un año puntual, agregá AND YEAR(l.FechaCompra) = 2022.",
+WHERE MONTH(p.DiaCompra) = 8;`,
+                tip: "Si querés agosto de un año puntual, agregá AND YEAR(p.DiaCompra) = 2022.",
                 checklist: ["Uní Prestamos con Estudiantes.", "Uní Prestamos con Libros.", "Filtré por MONTH = 8."]
             },
             {
@@ -1128,7 +1127,7 @@ ORDER BY borrowId;`,
                 explanation: "GROUP BY agrupa por tipo de libro. HAVING filtra después de calcular el promedio, por eso se usa para condiciones sobre agregados.",
                 sql: `SELECT
     t.typeId,
-    t.NombreTipo,
+    t.DescripcionTipo,
     AVG(CAST(DATEDIFF(DAY, p.DiaPrestamo, GETDATE()) AS DECIMAL(10,2))) AS PromedioDias
 FROM dbo.Prestamos AS p
 INNER JOIN dbo.Libros AS l
@@ -1137,7 +1136,7 @@ INNER JOIN dbo.Tipos AS t
     ON t.typeId = l.typeId
 GROUP BY
     t.typeId,
-    t.NombreTipo
+    t.DescripcionTipo
 HAVING AVG(CAST(DATEDIFF(DAY, p.DiaPrestamo, GETDATE()) AS DECIMAL(10,2))) > 70
 ORDER BY PromedioDias DESC;`,
                 tip: "WHERE filtra filas antes de agrupar; HAVING filtra grupos ya calculados.",
@@ -1152,7 +1151,7 @@ ORDER BY PromedioDias DESC;`,
                 explanation: "Cada préstamo apunta a un libro y cada libro a un autor. Contando préstamos por autor se obtiene el ranking.",
                 sql: `SELECT TOP (5) WITH TIES
     a.authorId,
-    CONCAT(a.NombreAutor, ' ', a.ApellidoAutor) AS Autor,
+    CONCAT(a.Nombre, ' ', a.Apellido) AS Autor,
     COUNT(*) AS CantidadPrestamos
 FROM dbo.Prestamos AS p
 INNER JOIN dbo.Libros AS l
@@ -1161,8 +1160,8 @@ INNER JOIN dbo.Autores AS a
     ON a.authorId = l.authorId
 GROUP BY
     a.authorId,
-    a.NombreAutor,
-    a.ApellidoAutor
+    a.Nombre,
+    a.Apellido
 ORDER BY COUNT(*) DESC;`,
                 tip: "WITH TIES permite incluir autores empatados en el quinto lugar.",
                 checklist: ["Conté préstamos por autor.", "Ordené de mayor a menor.", "Usé TOP 5."]
@@ -1218,7 +1217,7 @@ BEGIN
         ON e.studentId = p.studentId
     INNER JOIN dbo.Libros AS l
         ON l.bookId = p.bookId
-    WHERE MONTH(l.FechaCompra) = @Mes;
+    WHERE MONTH(p.DiaCompra) = @Mes;
 END;
 GO
 
@@ -1488,11 +1487,11 @@ ORDER BY NombreLibro;`,
         ];
 
         const expectedTables = [
-            { name: "Estudiantes", columns: ["studentId", "Nombre", "Apellido", "Genero", "Clase", "FechaNacimiento"] },
-            { name: "Autores", columns: ["authorId", "NombreAutor", "ApellidoAutor"] },
-            { name: "Tipos", columns: ["typeId", "NombreTipo"] },
-            { name: "Libros", columns: ["bookId", "NombreLibro", "CantPaginas", "Puntos", "FechaCompra", "authorId", "typeId"] },
-            { name: "Prestamos", columns: ["borrowId", "studentId", "bookId", "DiaPrestamo"] }
+            { name: "Estudiantes", columns: ["studentId", "Nombre", "Apellido", "FechaNacimiento", "Genero", "Clase", "Punto"] },
+            { name: "Autores", columns: ["authorId", "Nombre", "Apellido"] },
+            { name: "Tipos", columns: ["typeId", "DescripcionTipo"] },
+            { name: "Libros", columns: ["bookId", "NombreLibro", "CantPaginas", "Punto", "authorId", "typeId"] },
+            { name: "Prestamos", columns: ["borrowId", "studentId", "bookId", "DiaPrestamo", "DiaCompra"] }
         ];
 
         const state = {
