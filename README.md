@@ -20,6 +20,7 @@ También podés abrir `abrir.html`, que muestra un acceso simple hacia la guía.
 - Checklist de práctica por ejercicio.
 - Tarjetas de repaso.
 - Script base opcional para crear las tablas si no se tiene a mano el script del profesor.
+- Sección para pegar o cargar `InsertTPLibrary.sql` y comparar tablas/columnas detectadas.
 
 ## Nota sobre el modelo
 
@@ -32,3 +33,7 @@ El PDF contiene el diagrama del modelo como imagen, por lo que la guía usa un m
 - `Prestamos(borrowId, studentId, bookId, DiaPrestamo)`
 
 Si el archivo de inserción del profesor usa nombres de columnas distintos, ajustá esos nombres en las consultas. La lógica de SQL Server es la misma.
+
+## Sobre el link del campus
+
+El recurso `InsertTPLibrary.sql` del campus requiere sesión iniciada. Por eso la página incluye una sección llamada **Script del profesor: InsertTPLibrary.sql**: descargá el archivo desde el campus con tu usuario, pegá el contenido o cargá el `.sql`, y la guía lo analiza localmente en tu navegador.

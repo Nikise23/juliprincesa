@@ -547,6 +547,85 @@
             display: block;
         }
 
+        .script-tools {
+            display: grid;
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .script-drop {
+            display: grid;
+            gap: 10px;
+            padding: 16px;
+            background: #f8fbff;
+            border: 1px dashed #93c5fd;
+            border-radius: 18px;
+        }
+
+        .script-input {
+            width: 100%;
+            min-height: 180px;
+            padding: 14px;
+            color: var(--ink);
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            font-family: "Cascadia Code", Consolas, monospace;
+            font-size: 0.92rem;
+            line-height: 1.45;
+            resize: vertical;
+        }
+
+        .script-summary {
+            display: grid;
+            gap: 12px;
+        }
+
+        .summary-table {
+            width: 100%;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-collapse: separate;
+            border-radius: 16px;
+            border-spacing: 0;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 11px 12px;
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .summary-table th {
+            color: #0f172a;
+            background: #eff6ff;
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .column-pill {
+            display: inline-flex;
+            padding: 4px 8px;
+            margin: 2px;
+            color: #1e40af;
+            background: #dbeafe;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .status-note {
+            padding: 12px 14px;
+            color: #115e59;
+            background: #f0fdfa;
+            border: 1px solid #99f6e4;
+            border-radius: 16px;
+        }
+
         .empty {
             padding: 18px;
             color: var(--muted);
@@ -635,6 +714,7 @@
                 <div class="hero-actions">
                     <button class="btn primary" id="startBtn">Empezar por el punto 1</button>
                     <a class="btn" href="#modelo">Ver modelo asumido</a>
+                    <a class="btn" href="#script-profe">Cargar script del profe</a>
                     <a class="btn" href="#repaso">Practicar con tarjetas</a>
                 </div>
             </section>
@@ -692,6 +772,30 @@
                 <div class="tip">
                     Orden de carga recomendado por el práctico: primero Estudiantes, después Autores, Tipos, Libros y por último Prestamos.
                     Ese orden evita errores de claves foráneas porque las tablas hijas necesitan que existan las filas padre.
+                </div>
+            </section>
+
+            <section class="panel" id="script-profe">
+                <h3>Script del profesor: InsertTPLibrary.sql</h3>
+                <p>
+                    El enlace del campus requiere iniciar sesión, por eso desde esta página no puedo descargarlo automáticamente.
+                    Abrilo desde tu navegador estando logueado, copiá el contenido del archivo o descargalo, y pegalo/cargalo acá.
+                    La página detecta tablas, columnas e INSERTs para comparar el script real con las consultas de la guía.
+                </p>
+                <div class="script-tools">
+                    <div class="script-drop">
+                        <label for="professorSqlFile"><strong>Cargar archivo .sql descargado</strong></label>
+                        <input id="professorSqlFile" type="file" accept=".sql,.txt,text/plain">
+                    </div>
+                    <textarea id="professorSqlInput" class="script-input" spellcheck="false" placeholder="Pegá acá el contenido de InsertTPLibrary.sql..."></textarea>
+                    <div class="hero-actions">
+                        <button class="btn primary" id="analyzeProfessorSqlBtn">Analizar script</button>
+                        <button class="btn" id="clearProfessorSqlBtn">Limpiar script</button>
+                        <a class="btn" href="https://campusvirtual.unpaz.edu.ar/pluginfile.php/3049817/mod_resource/content/3/InsertTPLibrary.sql" target="_blank" rel="noreferrer">Abrir enlace del campus</a>
+                    </div>
+                    <div id="scriptAnalysis" class="script-summary">
+                        <div class="empty">Pegá o cargá el archivo SQL y presioná “Analizar script”.</div>
+                    </div>
                 </div>
             </section>
 
@@ -1383,6 +1487,14 @@ ORDER BY NombreLibro;`,
             }
         ];
 
+        const expectedTables = [
+            { name: "Estudiantes", columns: ["studentId", "Nombre", "Apellido", "Genero", "Clase", "FechaNacimiento"] },
+            { name: "Autores", columns: ["authorId", "NombreAutor", "ApellidoAutor"] },
+            { name: "Tipos", columns: ["typeId", "NombreTipo"] },
+            { name: "Libros", columns: ["bookId", "NombreLibro", "CantPaginas", "Puntos", "FechaCompra", "authorId", "typeId"] },
+            { name: "Prestamos", columns: ["borrowId", "studentId", "bookId", "DiaPrestamo"] }
+        ];
+
         const state = {
             selectedId: 1,
             category: "Todos",
@@ -1405,7 +1517,12 @@ ORDER BY NombreLibro;`,
             flashHint: document.getElementById("flashHint"),
             flashAnswer: document.getElementById("flashAnswer"),
             showAnswerBtn: document.getElementById("showAnswerBtn"),
-            nextFlashBtn: document.getElementById("nextFlashBtn")
+            nextFlashBtn: document.getElementById("nextFlashBtn"),
+            professorSqlFile: document.getElementById("professorSqlFile"),
+            professorSqlInput: document.getElementById("professorSqlInput"),
+            analyzeProfessorSqlBtn: document.getElementById("analyzeProfessorSqlBtn"),
+            clearProfessorSqlBtn: document.getElementById("clearProfessorSqlBtn"),
+            scriptAnalysis: document.getElementById("scriptAnalysis")
         };
 
         function escapeHtml(value) {
@@ -1450,6 +1567,157 @@ ORDER BY NombreLibro;`,
             const total = exercises.length;
             elements.progressText.textContent = `${done}/${total}`;
             elements.progressFill.style.width = `${Math.round((done / total) * 100)}%`;
+        }
+
+        function cleanSqlIdentifier(value) {
+            const text = String(value || "").trim().replace(/,$/, "");
+            const bracketParts = [...text.matchAll(/\[([^\]]+)\]/g)].map((match) => match[1]);
+            if (bracketParts.length) {
+                return bracketParts.at(-1);
+            }
+            return text
+                .replaceAll('"', "")
+                .split(".")
+                .map((part) => part.trim())
+                .filter(Boolean)
+                .at(-1) || "";
+        }
+
+        function splitSqlColumns(value) {
+            const columns = [];
+            let current = "";
+            let depth = 0;
+            for (const char of String(value || "")) {
+                if (char === "(") {
+                    depth += 1;
+                } else if (char === ")" && depth > 0) {
+                    depth -= 1;
+                }
+
+                if (char === "," && depth === 0) {
+                    columns.push(current);
+                    current = "";
+                } else {
+                    current += char;
+                }
+            }
+            if (current.trim()) {
+                columns.push(current);
+            }
+            return columns
+                .map((column) => cleanSqlIdentifier(column.replace(/\s+ASC|\s+DESC/gi, "")))
+                .filter(Boolean);
+        }
+
+        function extractSqlMetadata(sql) {
+            const tables = new Map();
+
+            function ensureTable(rawName) {
+                const tableName = cleanSqlIdentifier(rawName);
+                const key = normalize(tableName);
+                if (!key) {
+                    return null;
+                }
+                if (!tables.has(key)) {
+                    tables.set(key, { name: tableName, columns: new Set(), inserts: 0 });
+                }
+                return tables.get(key);
+            }
+
+            let currentCreate = null;
+            for (const rawLine of sql.split(/\r?\n/)) {
+                const line = rawLine.replace(/--.*$/, "").trim();
+                const createMatch = line.match(/^CREATE\s+TABLE\s+([^\s(]+)/i);
+                if (createMatch) {
+                    currentCreate = ensureTable(createMatch[1]);
+                    continue;
+                }
+                if (!currentCreate) {
+                    continue;
+                }
+                if (line.startsWith(")") || /^GO\b/i.test(line)) {
+                    currentCreate = null;
+                    continue;
+                }
+                if (/^(CONSTRAINT|PRIMARY|FOREIGN|CHECK|UNIQUE|KEY)\b/i.test(line)) {
+                    continue;
+                }
+                const columnMatch = line.match(/^(\[[^\]]+\]|"[^"]+"|[A-Za-z_][\w#]*)\s+/);
+                if (columnMatch) {
+                    currentCreate.columns.add(cleanSqlIdentifier(columnMatch[1]));
+                }
+            }
+
+            const insertRegex = /INSERT\s+(?:INTO\s+)?((?:\[[^\]]+\]|"[^"]+"|[\w#]+)(?:\s*\.\s*(?:\[[^\]]+\]|"[^"]+"|[\w#]+)){0,2})\s*(?:\(([^;]*?)\))?/gi;
+            let insertMatch = insertRegex.exec(sql);
+            while (insertMatch) {
+                const table = ensureTable(insertMatch[1]);
+                if (table) {
+                    table.inserts += 1;
+                    for (const column of splitSqlColumns(insertMatch[2] || "")) {
+                        table.columns.add(column);
+                    }
+                }
+                insertMatch = insertRegex.exec(sql);
+            }
+
+            return { tables };
+        }
+
+        function renderColumnPills(columns) {
+            return columns.length
+                ? columns.map((column) => `<span class="column-pill">${escapeHtml(column)}</span>`).join("")
+                : "<span>No detecté columnas explícitas.</span>";
+        }
+
+        function analyzeProfessorSql() {
+            const sql = elements.professorSqlInput.value.trim();
+            if (!sql) {
+                elements.scriptAnalysis.innerHTML = `<div class="empty">Pegá o cargá el archivo SQL y presioná “Analizar script”.</div>`;
+                localStorage.removeItem("professorSqlScript");
+                return;
+            }
+
+            localStorage.setItem("professorSqlScript", sql);
+            const metadata = extractSqlMetadata(sql);
+            const detectedTables = [...metadata.tables.values()].sort((a, b) => a.name.localeCompare(b.name));
+            const expectedRows = expectedTables.map((expected) => {
+                const found = metadata.tables.get(normalize(expected.name));
+                const detectedColumns = found ? [...found.columns] : [];
+                const status = found ? `Detectada (${found.inserts} INSERT${found.inserts === 1 ? "" : "s"})` : "No detectada";
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(expected.name)}</strong></td>
+                        <td>${escapeHtml(status)}</td>
+                        <td>${renderColumnPills(detectedColumns)}</td>
+                        <td>${renderColumnPills(expected.columns)}</td>
+                    </tr>
+                `;
+            }).join("");
+            const extraTables = detectedTables
+                .filter((table) => !expectedTables.some((expected) => normalize(expected.name) === normalize(table.name)))
+                .map((table) => `${table.name} (${table.inserts} INSERT${table.inserts === 1 ? "" : "s"})`);
+
+            elements.scriptAnalysis.innerHTML = `
+                <div class="status-note">
+                    Detecté ${detectedTables.length} tabla${detectedTables.length === 1 ? "" : "s"} en el script.
+                    Usá esta comparación para ajustar nombres de columnas si tu archivo difiere del modelo base.
+                </div>
+                <div style="overflow:auto;">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Tabla esperada</th>
+                                <th>Estado en el script</th>
+                                <th>Columnas detectadas</th>
+                                <th>Columnas usadas en la guía</th>
+                            </tr>
+                        </thead>
+                        <tbody>${expectedRows}</tbody>
+                    </table>
+                </div>
+                ${extraTables.length ? `<div class="tip"><strong>Tablas extra detectadas:</strong> ${escapeHtml(extraTables.join(", "))}</div>` : ""}
+            `;
         }
 
         function renderCategories() {
@@ -1615,6 +1883,33 @@ ORDER BY NombreLibro;`,
             state.flashIndex = (state.flashIndex + 1) % flashcards.length;
             renderFlashcard();
         });
+
+        elements.analyzeProfessorSqlBtn.addEventListener("click", analyzeProfessorSql);
+
+        elements.clearProfessorSqlBtn.addEventListener("click", () => {
+            elements.professorSqlInput.value = "";
+            elements.professorSqlFile.value = "";
+            analyzeProfessorSql();
+        });
+
+        elements.professorSqlFile.addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            const reader = new FileReader();
+            reader.addEventListener("load", () => {
+                elements.professorSqlInput.value = String(reader.result || "");
+                analyzeProfessorSql();
+            });
+            reader.readAsText(file);
+        });
+
+        const savedProfessorSql = localStorage.getItem("professorSqlScript");
+        if (savedProfessorSql) {
+            elements.professorSqlInput.value = savedProfessorSql;
+            analyzeProfessorSql();
+        }
 
         renderCategories();
         renderList();
