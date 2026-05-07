@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Práctico SQL Server - NewLibrary</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --panel-2: #1f2937;
+            --card: #ffffff;
+            --ink: #172033;
+            --muted: #61708a;
+            --line: #d8e0ee;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --accent: #14b8a6;
+            --accent-soft: #ccfbf1;
+            --warn: #f59e0b;
+            --code: #0b1120;
+            --ok: #16a34a;
+            --shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(20, 184, 166, 0.26), transparent 36rem),
+                radial-gradient(circle at top right, rgba(37, 99, 235, 0.28), transparent 32rem),
+                #eef4ff;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .app-shell {
+            display: grid;
+            grid-template-columns: 340px minmax(0, 1fr);
+            gap: 22px;
+            width: min(1500px, calc(100% - 32px));
+            margin: 16px auto;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 16px;
+            align-self: start;
+            max-height: calc(100vh - 32px);
+            overflow: auto;
+            color: #e5efff;
+            background: linear-gradient(180deg, var(--bg), var(--panel));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 28px;
+            padding: 22px;
+            box-shadow: var(--shadow);
+        }
+
+        .brand {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .brand-icon {
+            display: grid;
+            width: 54px;
+            height: 54px;
+            place-items: center;
+            border-radius: 18px;
+            color: #0f172a;
+            background: linear-gradient(135deg, #67e8f9, #a7f3d0);
+            font-size: 1.7rem;
+            font-weight: 900;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            line-height: 1.2;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+            color: #aebed6;
+            font-size: 0.92rem;
+        }
+
+        .progress-card {
+            padding: 16px;
+            margin: 18px 0;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 22px;
+        }
+
+        .progress-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .progress-row strong {
+            font-size: 1.9rem;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.16);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #67e8f9);
+            transition: width 0.25s ease;
+        }
+
+        .search {
+            width: 100%;
+            padding: 13px 14px;
+            color: #e5efff;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            outline: none;
+        }
+
+        .search::placeholder {
+            color: #aebed6;
+        }
+
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 14px 0 18px;
+        }
+
+        .chip {
+            padding: 8px 10px;
+            color: #dbeafe;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+            transition: 0.2s ease;
+        }
+
+        .chip.active,
+        .chip:hover {
+            color: #0f172a;
+            background: #a7f3d0;
+        }
+
+        .exercise-list {
+            display: grid;
+            gap: 9px;
+        }
+
+        .nav-item {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
+            color: #e5efff;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(37, 99, 235, 0.36);
+            border-color: rgba(147, 197, 253, 0.55);
+        }
+
+        .nav-number {
+            display: grid;
+            width: 34px;
+            height: 34px;
+            place-items: center;
+            color: #0f172a;
+            background: #bfdbfe;
+            border-radius: 12px;
+            font-weight: 800;
+        }
+
+        .nav-title {
+            overflow: hidden;
+            font-size: 0.93rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .done-dot {
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+        }
+
+        .nav-item.done .done-dot {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        main {
+            display: grid;
+            gap: 18px;
+        }
+
+        .hero,
+        .panel,
+        .detail-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(216, 224, 238, 0.9);
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: clamp(24px, 5vw, 54px);
+        }
+
+        .hero::after {
+            position: absolute;
+            right: -80px;
+            bottom: -100px;
+            width: 320px;
+            height: 320px;
+            content: "";
+            background: radial-gradient(circle, rgba(20, 184, 166, 0.24), transparent 70%);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            padding: 8px 12px;
+            color: #115e59;
+            background: var(--accent-soft);
+            border-radius: 999px;
+            font-weight: 750;
+        }
+
+        .hero h2 {
+            max-width: 950px;
+            margin: 18px 0 12px;
+            font-size: clamp(2.1rem, 5vw, 4.5rem);
+            line-height: 1;
+            letter-spacing: -0.05em;
+        }
+
+        .hero p {
+            max-width: 850px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.1rem;
+            line-height: 1.65;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        .btn {
+            display: inline-flex;
+            gap: 9px;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 16px;
+            color: var(--primary);
+            background: #ffffff;
+            border: 1px solid #bfdbfe;
+            border-radius: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: 0.18s ease;
+        }
+
+        .btn.primary {
+            color: #ffffff;
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .panel {
+            padding: 24px;
+        }
+
+        .panel h3,
+        .detail-card h3 {
+            margin: 0 0 12px;
+            font-size: 1.35rem;
+        }
+
+        .panel p,
+        .detail-card p,
+        .detail-card li {
+            color: var(--muted);
+            line-height: 1.65;
+        }
+
+        .schema-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .table-card {
+            padding: 14px;
+            background: #f8fbff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+        }
+
+        .table-card strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #0f172a;
+        }
+
+        .table-card span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
+        .learning-path {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .path-step {
+            display: grid;
+            grid-template-columns: 36px 1fr;
+            gap: 12px;
+            align-items: start;
+            padding: 12px;
+            background: #f8fbff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+        }
+
+        .path-step b {
+            display: grid;
+            height: 36px;
+            place-items: center;
+            color: #ffffff;
+            background: var(--primary);
+            border-radius: 12px;
+        }
+
+        .detail-card {
+            padding: clamp(20px, 4vw, 34px);
+        }
+
+        .detail-head {
+            display: flex;
+            gap: 16px;
+            align-items: start;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 10px;
+            color: #0f766e;
+            background: var(--accent-soft);
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        .detail-title {
+            margin: 8px 0 0;
+            font-size: clamp(1.7rem, 3vw, 2.5rem);
+            line-height: 1.08;
+            letter-spacing: -0.035em;
+        }
+
+        .complete-toggle {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            min-width: max-content;
+            padding: 10px 12px;
+            color: var(--ok);
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 14px;
+            font-weight: 800;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin: 18px 0;
+        }
+
+        .info-box {
+            padding: 14px;
+            background: #f8fbff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+        }
+
+        .info-box b {
+            display: block;
+            margin-bottom: 6px;
+            color: #0f172a;
+        }
+
+        .code-block {
+            overflow: hidden;
+            margin: 18px 0;
+            background: var(--code);
+            border: 1px solid #1e293b;
+            border-radius: 20px;
+        }
+
+        .code-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 14px;
+            color: #cbd5e1;
+            background: #111827;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .copy-btn {
+            padding: 8px 10px;
+            color: #e0f2fe;
+            background: rgba(37, 99, 235, 0.28);
+            border: 1px solid rgba(147, 197, 253, 0.45);
+            border-radius: 10px;
+            font-weight: 800;
+        }
+
+        pre {
+            margin: 0;
+            padding: 18px;
+            overflow: auto;
+            color: #e5edf8;
+            font-size: 0.93rem;
+            line-height: 1.55;
+            tab-size: 4;
+        }
+
+        .tip {
+            padding: 14px 16px;
+            margin: 16px 0;
+            color: #713f12;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 18px;
+        }
+
+        .checklist {
+            display: grid;
+            gap: 10px;
+            padding: 0;
+            margin: 12px 0 0;
+            list-style: none;
+        }
+
+        .checklist li {
+            padding: 11px 12px;
+            background: #f8fbff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+        }
+
+        .practice-card {
+            min-height: 260px;
+        }
+
+        .flashcard {
+            padding: 18px;
+            background: linear-gradient(135deg, #eff6ff, #f0fdfa);
+            border: 1px solid #bfdbfe;
+            border-radius: 20px;
+        }
+
+        .flashcard h4 {
+            margin: 0 0 10px;
+            font-size: 1.25rem;
+        }
+
+        .answer {
+            display: none;
+            padding-top: 12px;
+            margin-top: 12px;
+            border-top: 1px dashed #93c5fd;
+        }
+
+        .answer.visible {
+            display: block;
+        }
+
+        .script-tools {
+            display: grid;
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .script-drop {
+            display: grid;
+            gap: 10px;
+            padding: 16px;
+            background: #f8fbff;
+            border: 1px dashed #93c5fd;
+            border-radius: 18px;
+        }
+
+        .script-input {
+            width: 100%;
+            min-height: 180px;
+            padding: 14px;
+            color: var(--ink);
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            font-family: "Cascadia Code", Consolas, monospace;
+            font-size: 0.92rem;
+            line-height: 1.45;
+            resize: vertical;
+        }
+
+        .script-summary {
+            display: grid;
+            gap: 12px;
+        }
+
+        .summary-table {
+            width: 100%;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-collapse: separate;
+            border-radius: 16px;
+            border-spacing: 0;
+        }
+
+        .summary-table th,
+        .summary-table td {
+            padding: 11px 12px;
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .summary-table th {
+            color: #0f172a;
+            background: #eff6ff;
+        }
+
+        .summary-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .column-pill {
+            display: inline-flex;
+            padding: 4px 8px;
+            margin: 2px;
+            color: #1e40af;
+            background: #dbeafe;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .status-note {
+            padding: 12px 14px;
+            color: #115e59;
+            background: #f0fdfa;
+            border: 1px solid #99f6e4;
+            border-radius: 16px;
+        }
+
+        .empty {
+            padding: 18px;
+            color: var(--muted);
+            background: #f8fbff;
+            border: 1px dashed var(--line);
+            border-radius: 18px;
+        }
+
+        @media (max-width: 1100px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                max-height: none;
+            }
+
+            .schema-grid,
+            .info-grid,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .app-shell {
+                width: min(100% - 18px, 1500px);
+                margin: 9px auto;
+            }
+
+            .sidebar,
+            .hero,
+            .panel,
+            .detail-card {
+                border-radius: 22px;
+            }
+
+            .detail-head {
+                flex-direction: column;
+            }
+
+            .hero-actions,
+            .code-toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" aria-label="Navegación del práctico">
+            <div class="brand">
+                <div class="brand-icon">SQL</div>
+                <div>
+                    <h1>Práctico SQL Server</h1>
+                    <p>Base NewLibrary - 22 puntos guiados</p>
+                </div>
+            </div>
+
+            <div class="progress-card" aria-live="polite">
+                <div class="progress-row">
+                    <span>Progreso</span>
+                    <strong id="progressText">0/22</strong>
+                </div>
+                <div class="progress-bar" aria-hidden="true">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <input id="searchInput" class="search" type="search" placeholder="Buscar: JOIN, vista, CTE..." aria-label="Buscar ejercicios">
+            <div class="chip-list" id="categoryChips" aria-label="Filtros por tema"></div>
+            <div id="exerciseList" class="exercise-list"></div>
+        </aside>
+
+        <main>
+            <section class="hero" id="inicio">
+                <span class="eyebrow">Guía interactiva para SQL Server</span>
+                <h2>Aprendé cada punto del práctico con explicación, consulta y práctica.</h2>
+                <p>
+                    Esta página convierte el PDF del trabajo práctico en una guía navegable. Está pensada para que primero entiendas
+                    qué pide cada ejercicio, después copies el SQL en SQL Server Management Studio o Azure Data Studio, y finalmente
+                    marques tu avance.
+                </p>
+                <div class="hero-actions">
+                    <button class="btn primary" id="startBtn">Empezar por el punto 1</button>
+                    <a class="btn" href="#modelo">Ver modelo asumido</a>
+                    <a class="btn" href="#script-profe">Cargar script del profe</a>
+                    <a class="btn" href="#repaso">Practicar con tarjetas</a>
+                </div>
+            </section>
+
+            <section class="panel" id="modelo">
+                <h3>Modelo base de referencia</h3>
+                <p>
+                    El PDF nombra estas tablas: <strong>Estudiantes</strong>, <strong>Autores</strong>, <strong>Tipos</strong>,
+                    <strong>Libros</strong> y <strong>Prestamos</strong>. Como el diagrama queda embebido como imagen, la guía usa
+                    estos nombres de columnas coherentes con los enunciados. Si tu script del profesor tiene algún nombre distinto,
+                    cambiá el alias/columna, pero la lógica de cada consulta es la misma.
+                </p>
+                <div class="schema-grid">
+                    <div class="table-card">
+                        <strong>Estudiantes</strong>
+                        <span>studentId PK</span>
+                        <span>Nombre, Apellido</span>
+                        <span>Genero, Clase</span>
+                        <span>FechaNacimiento</span>
+                    </div>
+                    <div class="table-card">
+                        <strong>Autores</strong>
+                        <span>authorId PK</span>
+                        <span>NombreAutor</span>
+                        <span>ApellidoAutor</span>
+                    </div>
+                    <div class="table-card">
+                        <strong>Tipos</strong>
+                        <span>typeId PK</span>
+                        <span>NombreTipo</span>
+                    </div>
+                    <div class="table-card">
+                        <strong>Libros</strong>
+                        <span>bookId PK</span>
+                        <span>NombreLibro</span>
+                        <span>CantPaginas, Puntos</span>
+                        <span>FechaCompra</span>
+                        <span>authorId FK, typeId FK</span>
+                    </div>
+                    <div class="table-card">
+                        <strong>Prestamos</strong>
+                        <span>borrowId PK</span>
+                        <span>studentId FK</span>
+                        <span>bookId FK</span>
+                        <span>DiaPrestamo</span>
+                    </div>
+                </div>
+                <div class="code-block">
+                    <div class="code-toolbar">
+                        <span>Script base opcional para probar si no tenés el del profesor</span>
+                        <button class="copy-btn" data-copy-target="setupSql">Copiar SQL</button>
+                    </div>
+                    <pre><code id="setupSql"></code></pre>
+                </div>
+                <div class="tip">
+                    Orden de carga recomendado por el práctico: primero Estudiantes, después Autores, Tipos, Libros y por último Prestamos.
+                    Ese orden evita errores de claves foráneas porque las tablas hijas necesitan que existan las filas padre.
+                </div>
+            </section>
+
+            <section class="panel" id="script-profe">
+                <h3>Script del profesor: InsertTPLibrary.sql</h3>
+                <p>
+                    El enlace del campus requiere iniciar sesión, por eso desde esta página no puedo descargarlo automáticamente.
+                    Abrilo desde tu navegador estando logueado, copiá el contenido del archivo o descargalo, y pegalo/cargalo acá.
+                    La página detecta tablas, columnas e INSERTs para comparar el script real con las consultas de la guía.
+                </p>
+                <div class="script-tools">
+                    <div class="script-drop">
+                        <label for="professorSqlFile"><strong>Cargar archivo .sql descargado</strong></label>
+                        <input id="professorSqlFile" type="file" accept=".sql,.txt,text/plain">
+                    </div>
+                    <textarea id="professorSqlInput" class="script-input" spellcheck="false" placeholder="Pegá acá el contenido de InsertTPLibrary.sql..."></textarea>
+                    <div class="hero-actions">
+                        <button class="btn primary" id="analyzeProfessorSqlBtn">Analizar script</button>
+                        <button class="btn" id="clearProfessorSqlBtn">Limpiar script</button>
+                        <a class="btn" href="https://campusvirtual.unpaz.edu.ar/pluginfile.php/3049817/mod_resource/content/3/InsertTPLibrary.sql" target="_blank" rel="noreferrer">Abrir enlace del campus</a>
+                    </div>
+                    <div id="scriptAnalysis" class="script-summary">
+                        <div class="empty">Pegá o cargá el archivo SQL y presioná “Analizar script”.</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid-2">
+                <article class="panel">
+                    <h3>Cómo estudiar esta guía</h3>
+                    <div class="learning-path">
+                        <div class="path-step">
+                            <b>1</b>
+                            <p>Leé el objetivo del punto y ubicá qué tablas participan.</p>
+                        </div>
+                        <div class="path-step">
+                            <b>2</b>
+                            <p>Copiá la consulta en SQL Server y ejecutala contra tu base <strong>NewLibrary</strong>.</p>
+                        </div>
+                        <div class="path-step">
+                            <b>3</b>
+                            <p>Compará el resultado con la explicación. Si cambia la cantidad de días, es normal: usa <code>GETDATE()</code>.</p>
+                        </div>
+                        <div class="path-step">
+                            <b>4</b>
+                            <p>Marcá el punto como completado y usá las tarjetas de repaso para preparar la defensa oral.</p>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel practice-card" id="repaso">
+                    <h3>Tarjetas rápidas de repaso</h3>
+                    <div class="flashcard">
+                        <span class="tag" id="flashTag">Repaso</span>
+                        <h4 id="flashQuestion"></h4>
+                        <p id="flashHint"></p>
+                        <div class="answer" id="flashAnswer"></div>
+                    </div>
+                    <div class="hero-actions">
+                        <button class="btn" id="showAnswerBtn">Mostrar respuesta</button>
+                        <button class="btn primary" id="nextFlashBtn">Otra tarjeta</button>
+                    </div>
+                </article>
+            </section>
+
+            <section class="detail-card" id="detalle" aria-live="polite">
+                <div id="exerciseDetail"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const setupSql = `CREATE DATABASE NewLibrary;
+GO
+
+USE NewLibrary;
+GO
+
+CREATE TABLE dbo.Estudiantes (
+    studentId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Estudiantes PRIMARY KEY,
+    Nombre VARCHAR(60) NOT NULL,
+    Apellido VARCHAR(60) NOT NULL,
+    Genero CHAR(1) NOT NULL CONSTRAINT CK_Estudiantes_Genero CHECK (Genero IN ('M', 'F')),
+    Clase VARCHAR(30) NOT NULL,
+    FechaNacimiento DATE NOT NULL
+);
+
+CREATE TABLE dbo.Autores (
+    authorId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Autores PRIMARY KEY,
+    NombreAutor VARCHAR(60) NOT NULL,
+    ApellidoAutor VARCHAR(60) NOT NULL
+);
+
+CREATE TABLE dbo.Tipos (
+    typeId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Tipos PRIMARY KEY,
+    NombreTipo VARCHAR(60) NOT NULL
+);
+
+CREATE TABLE dbo.Libros (
+    bookId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Libros PRIMARY KEY,
+    NombreLibro VARCHAR(120) NOT NULL,
+    CantPaginas INT NOT NULL,
+    Puntos INT NULL,
+    FechaCompra DATE NOT NULL,
+    authorId INT NOT NULL,
+    typeId INT NOT NULL,
+    CONSTRAINT FK_Libros_Autores FOREIGN KEY (authorId) REFERENCES dbo.Autores(authorId),
+    CONSTRAINT FK_Libros_Tipos FOREIGN KEY (typeId) REFERENCES dbo.Tipos(typeId)
+);
+
+CREATE TABLE dbo.Prestamos (
+    borrowId INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Prestamos PRIMARY KEY,
+    studentId INT NOT NULL,
+    bookId INT NOT NULL,
+    DiaPrestamo DATE NOT NULL,
+    CONSTRAINT FK_Prestamos_Estudiantes FOREIGN KEY (studentId) REFERENCES dbo.Estudiantes(studentId),
+    CONSTRAINT FK_Prestamos_Libros FOREIGN KEY (bookId) REFERENCES dbo.Libros(bookId)
+);`;
+
+        const exercises = [
+            {
+                id: 1,
+                title: "Crear tablas, PK y FK",
+                category: "Modelo",
+                focus: "DDL y relaciones",
+                task: "Interpretar el modelo y crear todas las tablas con claves principales y foráneas. Después cargar datos en el orden indicado.",
+                explanation: "Las claves primarias identifican cada fila. Las claves foráneas conectan tablas y obligan a cargar primero las tablas padre. Por eso Prestamos se carga al final: necesita estudiantes y libros ya existentes.",
+                sql: `USE NewLibrary;
+GO
+
+-- Si ya usaste el script base de arriba, este punto queda cubierto.
+-- Orden correcto para INSERT:
+-- 1) Estudiantes
+-- 2) Autores
+-- 3) Tipos
+-- 4) Libros
+-- 5) Prestamos
+
+INSERT INTO dbo.Estudiantes (Nombre, Apellido, Genero, Clase, FechaNacimiento)
+VALUES ('Ana', 'Paz', 'F', 'A', '2001-05-10');
+
+INSERT INTO dbo.Autores (NombreAutor, ApellidoAutor)
+VALUES ('Julio', 'Cortazar');
+
+INSERT INTO dbo.Tipos (NombreTipo)
+VALUES ('Novela');
+
+INSERT INTO dbo.Libros (NombreLibro, CantPaginas, Puntos, FechaCompra, authorId, typeId)
+VALUES ('Rayuela', 635, 3, '2022-08-15', 1, 1);
+
+INSERT INTO dbo.Prestamos (studentId, bookId, DiaPrestamo)
+VALUES (1, 1, '2022-09-01');`,
+                tip: "Si aparece un error de FK, revisá que el ID que insertás exista en la tabla padre.",
+                checklist: ["Identifiqué todas las PK.", "Identifiqué todas las FK.", "Cargué datos respetando el orden padre-hijo."]
+            },
+            {
+                id: 2,
+                title: "Agregar CHECK y DEFAULT",
+                category: "Restricciones",
+                focus: "ALTER TABLE",
+                task: "Agregar un CHECK para que CantPaginas sea mayor a 0 y un DEFAULT de 1 para Puntos.",
+                explanation: "CHECK valida datos antes de guardarlos. DEFAULT completa un valor cuando el INSERT no lo informa. En SQL Server el DEFAULT se agrega sobre una columna con FOR.",
+                sql: `ALTER TABLE dbo.Libros
+ADD CONSTRAINT CK_Libros_CantPaginas_Positive
+CHECK (CantPaginas > 0);
+GO
+
+ALTER TABLE dbo.Libros
+ADD CONSTRAINT DF_Libros_Puntos
+DEFAULT (1) FOR Puntos;
+GO
+
+-- Prueba: este INSERT debería fallar por CantPaginas = 0.
+INSERT INTO dbo.Libros (NombreLibro, CantPaginas, FechaCompra, authorId, typeId)
+VALUES ('Libro invalido', 0, '2022-08-01', 1, 1);`,
+                tip: "El DEFAULT afecta inserts nuevos. Si ya había filas con NULL en Puntos, actualizalas con UPDATE.",
+                checklist: ["Probé un valor inválido.", "Verifiqué que Puntos tome 1 si no lo envío."]
+            },
+            {
+                id: 3,
+                title: "Libros por páginas descendentes",
+                category: "Consultas",
+                focus: "ORDER BY",
+                task: "Listar nombres de libros y cantidad de páginas ordenados de mayor a menor.",
+                explanation: "ORDER BY DESC pone primero los valores más altos. Solo necesitás leer la tabla Libros.",
+                sql: `SELECT
+    NombreLibro,
+    CantPaginas
+FROM dbo.Libros
+ORDER BY CantPaginas DESC;`,
+                tip: "Si hay libros con igual cantidad de páginas, podés agregar NombreLibro como segundo criterio.",
+                checklist: ["Seleccioné solo las columnas pedidas.", "Usé DESC."]
+            },
+            {
+                id: 4,
+                title: "Primeros 4 estudiantes",
+                category: "Consultas",
+                focus: "TOP y CONCAT",
+                task: "Obtener StudentId, Nombre + Apellido y fecha de nacimiento de los primeros 4 estudiantes, ordenados por fecha ascendente.",
+                explanation: "En fechas, ASC deja primero las más antiguas. En este caso serían los estudiantes de mayor edad.",
+                sql: `SELECT TOP (4)
+    studentId,
+    CONCAT(Nombre, ' ', Apellido) AS NombreCompleto,
+    FechaNacimiento
+FROM dbo.Estudiantes
+ORDER BY FechaNacimiento ASC;`,
+                tip: "CONCAT evita problemas si alguna parte del nombre fuera NULL.",
+                checklist: ["Usé TOP (4).", "Uní nombre y apellido.", "Ordené por FechaNacimiento ASC."]
+            },
+            {
+                id: 5,
+                title: "TOP con WITH TIES",
+                category: "Consultas",
+                focus: "TOP WITH TIES",
+                task: "Repetir el punto 4 con WITH TIES y explicar qué se verifica.",
+                explanation: "WITH TIES incluye filas empatadas con la última fila del TOP. Si el cuarto estudiante comparte la misma FechaNacimiento con otros, SQL Server devuelve más de 4 filas.",
+                sql: `SELECT TOP (4) WITH TIES
+    studentId,
+    CONCAT(Nombre, ' ', Apellido) AS NombreCompleto,
+    FechaNacimiento
+FROM dbo.Estudiantes
+ORDER BY FechaNacimiento ASC;`,
+                tip: "WITH TIES depende completamente de la columna del ORDER BY. Si agregás un segundo criterio único, puede desaparecer el empate.",
+                checklist: ["Ejecuté la consulta del punto 4.", "Ejecuté WITH TIES.", "Comparé la cantidad de filas devueltas."]
+            },
+            {
+                id: 6,
+                title: "Días de préstamo",
+                category: "Fechas",
+                focus: "DATEDIFF",
+                task: "Informar borrowId, studentId, bookId y cantidad de días que llevan prestados los libros.",
+                explanation: "DATEDIFF(DAY, inicio, fin) calcula la diferencia entre la fecha de préstamo y la fecha actual. El resultado cambia cada día porque usa GETDATE().",
+                sql: `SELECT
+    borrowId,
+    studentId,
+    bookId,
+    DATEDIFF(DAY, DiaPrestamo, GETDATE()) AS CantDias
+FROM dbo.Prestamos;`,
+                tip: "Si necesitás ignorar la hora actual, podés usar CAST(GETDATE() AS DATE).",
+                checklist: ["Usé DATEDIFF con DAY.", "Entendí por qué CantDias varía."]
+            },
+            {
+                id: 7,
+                title: "Préstamos de libros comprados en agosto",
+                category: "JOIN",
+                focus: "JOIN, DATEDIFF y MONTH",
+                task: "Informar préstamos con datos del estudiante y libro para libros comprados en agosto.",
+                explanation: "La consulta necesita unir Prestamos con Estudiantes y Libros. MONTH(FechaCompra) = 8 filtra compras realizadas en agosto.",
+                sql: `SELECT
+    p.borrowId,
+    p.studentId,
+    CONCAT(e.Nombre, ' ', e.Apellido) AS Estudiante,
+    p.bookId,
+    l.NombreLibro,
+    DATEDIFF(DAY, p.DiaPrestamo, GETDATE()) AS CantDias
+FROM dbo.Prestamos AS p
+INNER JOIN dbo.Estudiantes AS e
+    ON e.studentId = p.studentId
+INNER JOIN dbo.Libros AS l
+    ON l.bookId = p.bookId
+WHERE MONTH(l.FechaCompra) = 8;`,
+                tip: "Si querés agosto de un año puntual, agregá AND YEAR(l.FechaCompra) = 2022.",
+                checklist: ["Uní Prestamos con Estudiantes.", "Uní Prestamos con Libros.", "Filtré por MONTH = 8."]
+            },
+            {
+                id: 8,
+                title: "Estudiantes sin préstamos",
+                category: "JOIN",
+                focus: "LEFT JOIN / subconsulta",
+                task: "Informar todos los estudiantes que nunca realizaron un préstamo.",
+                explanation: "Con LEFT JOIN se conservan todos los estudiantes. Los que no tienen coincidencia en Prestamos quedan con p.borrowId en NULL.",
+                sql: `SELECT
+    e.studentId,
+    e.Nombre,
+    e.Apellido,
+    e.Genero,
+    e.Clase
+FROM dbo.Estudiantes AS e
+LEFT JOIN dbo.Prestamos AS p
+    ON p.studentId = e.studentId
+WHERE p.borrowId IS NULL;`,
+                tip: "Alternativa equivalente: WHERE NOT EXISTS (SELECT 1 FROM dbo.Prestamos p WHERE p.studentId = e.studentId).",
+                checklist: ["Usé LEFT JOIN.", "Filtré los NULL del lado de Prestamos."]
+            },
+            {
+                id: 9,
+                title: "Insertar 2 estudiantes y reevaluar",
+                category: "DML",
+                focus: "INSERT y análisis",
+                task: "Insertar dos estudiantes elegidos por vos. Reejecutar el punto 8 y escribir una conclusión.",
+                explanation: "Si insertás estudiantes nuevos y no insertás préstamos para ellos, deberían aparecer en la consulta de estudiantes sin préstamos.",
+                sql: `INSERT INTO dbo.Estudiantes (Nombre, Apellido, Genero, Clase, FechaNacimiento)
+VALUES
+    ('Sofia', 'Lopez', 'F', 'A', '2000-04-20'),
+    ('Mateo', 'Gomez', 'M', 'B', '1999-11-03');
+
+SELECT
+    e.studentId,
+    e.Nombre,
+    e.Apellido,
+    e.Genero,
+    e.Clase
+FROM dbo.Estudiantes AS e
+LEFT JOIN dbo.Prestamos AS p
+    ON p.studentId = e.studentId
+WHERE p.borrowId IS NULL;`,
+                tip: "Conclusión esperada: los nuevos estudiantes aparecen porque todavía no tienen filas relacionadas en Prestamos.",
+                checklist: ["Inserté dos filas.", "Reejecuté el punto 8.", "Escribí la conclusión con mis datos."]
+            },
+            {
+                id: 10,
+                title: "Copiar Estudiantes a Estudiantes_cpy",
+                category: "DML",
+                focus: "SELECT INTO",
+                task: "Crear una copia derivada de Estudiantes llamada Estudiantes_cpy.",
+                explanation: "SELECT INTO crea una tabla nueva con la estructura de las columnas seleccionadas y copia los datos en el mismo paso.",
+                sql: `IF OBJECT_ID('dbo.Estudiantes_cpy', 'U') IS NOT NULL
+    DROP TABLE dbo.Estudiantes_cpy;
+GO
+
+SELECT *
+INTO dbo.Estudiantes_cpy
+FROM dbo.Estudiantes;
+
+SELECT *
+FROM dbo.Estudiantes_cpy;`,
+                tip: "SELECT INTO copia datos, pero no copia todas las restricciones originales como PK/FK.",
+                checklist: ["Creé la tabla copia.", "Verifiqué que tenga filas."]
+            },
+            {
+                id: 11,
+                title: "Actualizar fechas de préstamo",
+                category: "Fechas",
+                focus: "DATEADD y UPDATE",
+                task: "Actualizar DiaPrestamo incrementando en 5 la cantidad de años.",
+                explanation: "DATEADD en SQL Server se escribe DATEADD(parte, cantidad, fecha). Para sumar cinco años, la parte es YEAR y la cantidad es 5.",
+                sql: `UPDATE dbo.Prestamos
+SET DiaPrestamo = DATEADD(YEAR, 5, DiaPrestamo);
+
+SELECT
+    borrowId,
+    DiaPrestamo
+FROM dbo.Prestamos
+ORDER BY borrowId;`,
+                tip: "Antes de un UPDATE masivo conviene hacer un SELECT con la expresión para revisar el resultado.",
+                checklist: ["Usé DATEADD(YEAR, 5, DiaPrestamo).", "Verifiqué las fechas actualizadas."]
+            },
+            {
+                id: 12,
+                title: "Promedio de préstamo por tipo",
+                category: "Agregación",
+                focus: "AVG, GROUP BY y HAVING",
+                task: "Informar el tiempo promedio de préstamo por tipo de libro, solo para tipos cuyo promedio supera los 70 días.",
+                explanation: "GROUP BY agrupa por tipo de libro. HAVING filtra después de calcular el promedio, por eso se usa para condiciones sobre agregados.",
+                sql: `SELECT
+    t.typeId,
+    t.NombreTipo,
+    AVG(CAST(DATEDIFF(DAY, p.DiaPrestamo, GETDATE()) AS DECIMAL(10,2))) AS PromedioDias
+FROM dbo.Prestamos AS p
+INNER JOIN dbo.Libros AS l
+    ON l.bookId = p.bookId
+INNER JOIN dbo.Tipos AS t
+    ON t.typeId = l.typeId
+GROUP BY
+    t.typeId,
+    t.NombreTipo
+HAVING AVG(CAST(DATEDIFF(DAY, p.DiaPrestamo, GETDATE()) AS DECIMAL(10,2))) > 70
+ORDER BY PromedioDias DESC;`,
+                tip: "WHERE filtra filas antes de agrupar; HAVING filtra grupos ya calculados.",
+                checklist: ["Uní préstamos, libros y tipos.", "Agrupé por tipo.", "Usé HAVING > 70."]
+            },
+            {
+                id: 13,
+                title: "Top 5 autores más prestados",
+                category: "Agregación",
+                focus: "COUNT, GROUP BY y TOP",
+                task: "Informar el top 5 de autores más prestados.",
+                explanation: "Cada préstamo apunta a un libro y cada libro a un autor. Contando préstamos por autor se obtiene el ranking.",
+                sql: `SELECT TOP (5) WITH TIES
+    a.authorId,
+    CONCAT(a.NombreAutor, ' ', a.ApellidoAutor) AS Autor,
+    COUNT(*) AS CantidadPrestamos
+FROM dbo.Prestamos AS p
+INNER JOIN dbo.Libros AS l
+    ON l.bookId = p.bookId
+INNER JOIN dbo.Autores AS a
+    ON a.authorId = l.authorId
+GROUP BY
+    a.authorId,
+    a.NombreAutor,
+    a.ApellidoAutor
+ORDER BY COUNT(*) DESC;`,
+                tip: "WITH TIES permite incluir autores empatados en el quinto lugar.",
+                checklist: ["Conté préstamos por autor.", "Ordené de mayor a menor.", "Usé TOP 5."]
+            },
+            {
+                id: 14,
+                title: "Vista de estudiantes sin préstamos",
+                category: "Objetos SQL",
+                focus: "CREATE VIEW",
+                task: "Crear la vista vw_EstudiantesSinPrestamos a partir del punto 8.",
+                explanation: "Una vista guarda la consulta como un objeto reutilizable. No guarda una copia física de los datos; cuando la consultás, SQL Server ejecuta la definición.",
+                sql: `CREATE OR ALTER VIEW dbo.vw_EstudiantesSinPrestamos
+AS
+SELECT
+    e.studentId,
+    e.Nombre,
+    e.Apellido,
+    e.Genero,
+    e.Clase
+FROM dbo.Estudiantes AS e
+LEFT JOIN dbo.Prestamos AS p
+    ON p.studentId = e.studentId
+WHERE p.borrowId IS NULL;
+GO
+
+SELECT *
+FROM dbo.vw_EstudiantesSinPrestamos;`,
+                tip: "En SQL Server, CREATE OR ALTER VIEW debe ser la primera instrucción de su lote; por eso se usa GO.",
+                checklist: ["Creé la vista.", "La consulté con SELECT."]
+            },
+            {
+                id: 15,
+                title: "Procedimiento por mes de compra",
+                category: "Objetos SQL",
+                focus: "Stored procedure con parámetro",
+                task: "Crear un procedimiento basado en el punto 7 que reciba el mes a consultar.",
+                explanation: "Un procedimiento almacenado permite parametrizar una consulta. Acá @Mes reemplaza el valor fijo 8 usado para agosto.",
+                sql: `CREATE OR ALTER PROCEDURE dbo.usp_PrestamosPorMesCompra
+    @Mes INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        p.borrowId,
+        p.studentId,
+        CONCAT(e.Nombre, ' ', e.Apellido) AS Estudiante,
+        p.bookId,
+        l.NombreLibro,
+        DATEDIFF(DAY, p.DiaPrestamo, GETDATE()) AS CantDias
+    FROM dbo.Prestamos AS p
+    INNER JOIN dbo.Estudiantes AS e
+        ON e.studentId = p.studentId
+    INNER JOIN dbo.Libros AS l
+        ON l.bookId = p.bookId
+    WHERE MONTH(l.FechaCompra) = @Mes;
+END;
+GO
+
+EXEC dbo.usp_PrestamosPorMesCompra @Mes = 8;`,
+                tip: "Podés validar @Mes con IF @Mes NOT BETWEEN 1 AND 12 para mejorar el procedimiento.",
+                checklist: ["Declaré @Mes.", "Reemplacé el 8 por @Mes.", "Probé el EXEC."]
+            },
+            {
+                id: 16,
+                title: "Procedimiento con género, clase y fechas",
+                category: "Objetos SQL",
+                focus: "Parámetros múltiples",
+                task: "Crear un procedimiento que reciba género, clase, fecha desde y fecha hasta, e informe estudiantes con préstamos que cumplan esas condiciones.",
+                explanation: "Se filtra por columnas del estudiante y por la fecha del préstamo. El rango usa menor que el día siguiente para incluir toda la fecha hasta.",
+                sql: `CREATE OR ALTER PROCEDURE dbo.usp_PrestamosPorEstudianteYFecha
+    @Genero CHAR(1),
+    @Clase VARCHAR(30),
+    @FechaDesde DATE,
+    @FechaHasta DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        CONCAT(e.Nombre, ' ', e.Apellido) AS Estudiante,
+        l.NombreLibro AS Libro,
+        p.DiaPrestamo
+    FROM dbo.Prestamos AS p
+    INNER JOIN dbo.Estudiantes AS e
+        ON e.studentId = p.studentId
+    INNER JOIN dbo.Libros AS l
+        ON l.bookId = p.bookId
+    WHERE e.Genero = @Genero
+      AND e.Clase = @Clase
+      AND p.DiaPrestamo >= @FechaDesde
+      AND p.DiaPrestamo < DATEADD(DAY, 1, @FechaHasta)
+    ORDER BY p.DiaPrestamo;
+END;
+GO
+
+EXEC dbo.usp_PrestamosPorEstudianteYFecha
+    @Genero = 'F',
+    @Clase = 'A',
+    @FechaDesde = '2022-01-01',
+    @FechaHasta = '2022-12-31';`,
+                tip: "Si tu tabla usa otro nombre para clase o género, cambiá e.Clase/e.Genero por los nombres reales.",
+                checklist: ["Declaré cuatro parámetros.", "Filtré por estudiante.", "Filtré por rango de fechas."]
+            },
+            {
+                id: 17,
+                title: "Función udf_EdadEstudiante",
+                category: "Objetos SQL",
+                focus: "Scalar function",
+                task: "Crear una función que reciba studentId y retorne la edad del estudiante.",
+                explanation: "DATEDIFF(YEAR) cuenta cambios de año, pero puede pasarse por uno si el cumpleaños todavía no ocurrió. La función corrige ese caso.",
+                sql: `CREATE OR ALTER FUNCTION dbo.udf_EdadEstudiante (@studentId INT)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @FechaNacimiento DATE;
+    DECLARE @Edad INT;
+
+    SELECT @FechaNacimiento = FechaNacimiento
+    FROM dbo.Estudiantes
+    WHERE studentId = @studentId;
+
+    IF @FechaNacimiento IS NULL
+        RETURN NULL;
+
+    SET @Edad = DATEDIFF(YEAR, @FechaNacimiento, CAST(GETDATE() AS DATE));
+
+    IF DATEADD(YEAR, @Edad, @FechaNacimiento) > CAST(GETDATE() AS DATE)
+        SET @Edad = @Edad - 1;
+
+    RETURN @Edad;
+END;
+GO
+
+SELECT
+    studentId,
+    CONCAT(Nombre, ' ', Apellido) AS Estudiante,
+    FechaNacimiento,
+    dbo.udf_EdadEstudiante(studentId) AS Edad
+FROM dbo.Estudiantes;`,
+                tip: "La función devuelve NULL si no existe el studentId.",
+                checklist: ["Busqué la fecha de nacimiento.", "Corregí cumpleaños no cumplido.", "Probé la función en un SELECT."]
+            },
+            {
+                id: 18,
+                title: "Eliminar Tipo typeId = 1",
+                category: "Restricciones",
+                focus: "DELETE y FK",
+                task: "Ejecutar DELETE sobre Tipos con typeId = 1 y explicar el resultado.",
+                explanation: "Si existen libros con typeId = 1, la FK Libros -> Tipos impide borrar ese tipo. SQL Server devuelve un error de conflicto con la restricción REFERENCE porque quedarían libros apuntando a un tipo inexistente.",
+                sql: `DELETE FROM dbo.Tipos
+WHERE typeId = 1;
+
+-- Para comprobar por qué falla:
+SELECT
+    l.bookId,
+    l.NombreLibro,
+    l.typeId
+FROM dbo.Libros AS l
+WHERE l.typeId = 1;`,
+                tip: "Solo podrías borrar el tipo si primero eliminás o reasignás los libros relacionados, o si la FK se definió con ON DELETE CASCADE.",
+                checklist: ["Ejecuté el DELETE.", "Leí el mensaje de error.", "Expliqué la relación con la FK."]
+            },
+            {
+                id: 19,
+                title: "Estudiantes sin préstamos con CTE",
+                category: "Consultas",
+                focus: "WITH CTE",
+                task: "Ejecutar la consulta del punto 8 usando una CTE.",
+                explanation: "Una CTE define un resultado temporal con nombre para usarlo inmediatamente en la consulta siguiente. Mejora la legibilidad de consultas largas.",
+                sql: `WITH EstudiantesSinPrestamos AS (
+    SELECT
+        e.studentId,
+        e.Nombre,
+        e.Apellido,
+        e.Genero,
+        e.Clase
+    FROM dbo.Estudiantes AS e
+    LEFT JOIN dbo.Prestamos AS p
+        ON p.studentId = e.studentId
+    WHERE p.borrowId IS NULL
+)
+SELECT *
+FROM EstudiantesSinPrestamos
+ORDER BY Apellido, Nombre;`,
+                tip: "La CTE vive solo para la instrucción que viene justo después del WITH.",
+                checklist: ["Definí la CTE.", "Consulté desde el nombre de la CTE."]
+            },
+            {
+                id: 20,
+                title: "ORDER BY dentro de una vista",
+                category: "Objetos SQL",
+                focus: "Views y ordenamiento",
+                task: "Investigar cómo emular ORDER BY en una vista y solucionar la vista dada.",
+                explanation: "SQL Server no permite ORDER BY en una vista salvo que se use TOP, OFFSET o FOR XML. Aunque TOP (100) PERCENT suele compilar, el orden real debe pedirse al consultar la vista.",
+                sql: `CREATE OR ALTER VIEW dbo.vw_Libros_Grandes
+AS
+SELECT
+    bookId,
+    NombreLibro,
+    CantPaginas
+FROM dbo.Libros
+WHERE CantPaginas > 300;
+GO
+
+-- Forma recomendable: ordenar al consumir la vista.
+SELECT
+    bookId,
+    NombreLibro,
+    CantPaginas
+FROM dbo.vw_Libros_Grandes
+ORDER BY CantPaginas DESC;
+
+-- Emulación que compila, pero no garantiza orden para siempre:
+-- CREATE OR ALTER VIEW dbo.vw_Libros_Grandes AS
+-- SELECT TOP (100) PERCENT bookId, NombreLibro, CantPaginas
+-- FROM dbo.Libros
+-- WHERE CantPaginas > 300
+-- ORDER BY CantPaginas DESC;`,
+                tip: "Una vista representa un conjunto de filas; el orden pertenece al SELECT final que consume ese conjunto.",
+                checklist: ["Entendí por qué falla ORDER BY.", "Creé la vista sin ORDER BY.", "Ordené al consultar la vista."]
+            },
+            {
+                id: 21,
+                title: "Variables cantM y cantF",
+                category: "T-SQL",
+                focus: "Variables e IF",
+                task: "Crear dos variables enteras con cantidad de estudiantes masculinos y femeninos. Informar qué género tiene más alumnos.",
+                explanation: "DECLARE crea variables. SELECT permite asignarles resultados de COUNT. IF decide qué mensaje mostrar con PRINT.",
+                sql: `DECLARE @cantM INT;
+DECLARE @cantF INT;
+
+SELECT @cantM = COUNT(*)
+FROM dbo.Estudiantes
+WHERE Genero = 'M';
+
+SELECT @cantF = COUNT(*)
+FROM dbo.Estudiantes
+WHERE Genero = 'F';
+
+IF @cantM > @cantF
+    PRINT CONCAT('Hay mas estudiantes masculinos: ', @cantM, ' contra ', @cantF);
+ELSE IF @cantF > @cantM
+    PRINT CONCAT('Hay mas estudiantes femeninos: ', @cantF, ' contra ', @cantM);
+ELSE
+    PRINT CONCAT('Hay empate: ', @cantM, ' y ', @cantF);`,
+                tip: "PRINT aparece en la pestaña Messages de SSMS, no en Results.",
+                checklist: ["Declaré variables INT.", "Asigné COUNT.", "Mostré el resultado con IF."]
+            },
+            {
+                id: 22,
+                title: "Primer estudiante que pidió cada libro",
+                category: "Consultas",
+                focus: "ROW_NUMBER",
+                task: "Informar de cada libro cuál fue el primer estudiante que lo pidió y la fecha.",
+                explanation: "ROW_NUMBER numera préstamos por libro ordenados por fecha. La fila rn = 1 es el primer préstamo de cada libro.",
+                sql: `WITH PrestamosOrdenados AS (
+    SELECT
+        l.bookId,
+        l.NombreLibro,
+        CONCAT(e.Nombre, ' ', e.Apellido) AS PrimerEstudiante,
+        p.DiaPrestamo,
+        ROW_NUMBER() OVER (
+            PARTITION BY l.bookId
+            ORDER BY p.DiaPrestamo ASC, p.borrowId ASC
+        ) AS rn
+    FROM dbo.Prestamos AS p
+    INNER JOIN dbo.Libros AS l
+        ON l.bookId = p.bookId
+    INNER JOIN dbo.Estudiantes AS e
+        ON e.studentId = p.studentId
+)
+SELECT
+    bookId,
+    NombreLibro,
+    PrimerEstudiante,
+    DiaPrestamo
+FROM PrestamosOrdenados
+WHERE rn = 1
+ORDER BY NombreLibro;`,
+                tip: "El borrowId como segundo orden resuelve empates si dos préstamos tienen la misma fecha.",
+                checklist: ["Usé PARTITION BY bookId.", "Ordené por DiaPrestamo.", "Filtré rn = 1."]
+            }
+        ];
+
+        const flashcards = [
+            {
+                tag: "FK",
+                question: "¿Por qué Prestamos se inserta al final?",
+                hint: "Pensá en qué tablas necesita consultar la clave foránea.",
+                answer: "Porque Prestamos depende de Estudiantes y Libros. Si insertás un préstamo con studentId o bookId inexistente, la FK lo rechaza."
+            },
+            {
+                tag: "Fechas",
+                question: "¿Qué hace DATEDIFF(DAY, DiaPrestamo, GETDATE())?",
+                hint: "Compara una fecha guardada con la fecha actual.",
+                answer: "Devuelve la cantidad de límites de día entre DiaPrestamo y el momento actual. Por eso el resultado puede cambiar cada día."
+            },
+            {
+                tag: "JOIN",
+                question: "¿Cuándo conviene LEFT JOIN en este práctico?",
+                hint: "Buscás filas que tal vez no tengan relación.",
+                answer: "En el punto de estudiantes sin préstamos, porque necesitás conservar todos los estudiantes aunque no tengan filas relacionadas en Prestamos."
+            },
+            {
+                tag: "Agregación",
+                question: "¿Cuál es la diferencia entre WHERE y HAVING?",
+                hint: "Uno filtra filas y el otro grupos.",
+                answer: "WHERE filtra antes de agrupar. HAVING filtra después del GROUP BY, cuando ya existen resultados agregados como AVG o COUNT."
+            },
+            {
+                tag: "Vista",
+                question: "¿Por qué no se recomienda depender del ORDER BY de una vista?",
+                hint: "Una vista no representa una lista ordenada, sino un conjunto.",
+                answer: "Porque SQL Server solo garantiza el orden en el SELECT final con ORDER BY. Una vista puede compilar con TOP, pero el consumidor debe ordenar."
+            },
+            {
+                tag: "TOP",
+                question: "¿Qué agrega WITH TIES al TOP?",
+                hint: "Mirá qué pasa con empates en la última posición.",
+                answer: "Incluye todas las filas empatadas con la última fila del TOP según el ORDER BY. Puede devolver más filas que el número indicado."
+            }
+        ];
+
+        const expectedTables = [
+            { name: "Estudiantes", columns: ["studentId", "Nombre", "Apellido", "Genero", "Clase", "FechaNacimiento"] },
+            { name: "Autores", columns: ["authorId", "NombreAutor", "ApellidoAutor"] },
+            { name: "Tipos", columns: ["typeId", "NombreTipo"] },
+            { name: "Libros", columns: ["bookId", "NombreLibro", "CantPaginas", "Puntos", "FechaCompra", "authorId", "typeId"] },
+            { name: "Prestamos", columns: ["borrowId", "studentId", "bookId", "DiaPrestamo"] }
+        ];
+
+        const state = {
+            selectedId: 1,
+            category: "Todos",
+            query: "",
+            completed: new Set(JSON.parse(localStorage.getItem("sqlPracticeCompleted") || "[]")),
+            flashIndex: 0
+        };
+
+        const elements = {
+            setupSql: document.getElementById("setupSql"),
+            exerciseList: document.getElementById("exerciseList"),
+            exerciseDetail: document.getElementById("exerciseDetail"),
+            categoryChips: document.getElementById("categoryChips"),
+            searchInput: document.getElementById("searchInput"),
+            progressText: document.getElementById("progressText"),
+            progressFill: document.getElementById("progressFill"),
+            startBtn: document.getElementById("startBtn"),
+            flashTag: document.getElementById("flashTag"),
+            flashQuestion: document.getElementById("flashQuestion"),
+            flashHint: document.getElementById("flashHint"),
+            flashAnswer: document.getElementById("flashAnswer"),
+            showAnswerBtn: document.getElementById("showAnswerBtn"),
+            nextFlashBtn: document.getElementById("nextFlashBtn"),
+            professorSqlFile: document.getElementById("professorSqlFile"),
+            professorSqlInput: document.getElementById("professorSqlInput"),
+            analyzeProfessorSqlBtn: document.getElementById("analyzeProfessorSqlBtn"),
+            clearProfessorSqlBtn: document.getElementById("clearProfessorSqlBtn"),
+            scriptAnalysis: document.getElementById("scriptAnalysis")
+        };
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function normalize(value) {
+            return String(value)
+                .toLowerCase()
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "");
+        }
+
+        function filteredExercises() {
+            const query = normalize(state.query);
+            return exercises.filter((exercise) => {
+                const matchesCategory = state.category === "Todos" || exercise.category === state.category;
+                const haystack = normalize([
+                    exercise.id,
+                    exercise.title,
+                    exercise.category,
+                    exercise.focus,
+                    exercise.task,
+                    exercise.explanation,
+                    exercise.sql
+                ].join(" "));
+                return matchesCategory && haystack.includes(query);
+            });
+        }
+
+        function saveCompleted() {
+            localStorage.setItem("sqlPracticeCompleted", JSON.stringify([...state.completed]));
+        }
+
+        function updateProgress() {
+            const done = state.completed.size;
+            const total = exercises.length;
+            elements.progressText.textContent = `${done}/${total}`;
+            elements.progressFill.style.width = `${Math.round((done / total) * 100)}%`;
+        }
+
+        function cleanSqlIdentifier(value) {
+            const text = String(value || "").trim().replace(/,$/, "");
+            const bracketParts = [...text.matchAll(/\[([^\]]+)\]/g)].map((match) => match[1]);
+            if (bracketParts.length) {
+                return bracketParts.at(-1);
+            }
+            return text
+                .replaceAll('"', "")
+                .split(".")
+                .map((part) => part.trim())
+                .filter(Boolean)
+                .at(-1) || "";
+        }
+
+        function splitSqlColumns(value) {
+            const columns = [];
+            let current = "";
+            let depth = 0;
+            for (const char of String(value || "")) {
+                if (char === "(") {
+                    depth += 1;
+                } else if (char === ")" && depth > 0) {
+                    depth -= 1;
+                }
+
+                if (char === "," && depth === 0) {
+                    columns.push(current);
+                    current = "";
+                } else {
+                    current += char;
+                }
+            }
+            if (current.trim()) {
+                columns.push(current);
+            }
+            return columns
+                .map((column) => cleanSqlIdentifier(column.replace(/\s+ASC|\s+DESC/gi, "")))
+                .filter(Boolean);
+        }
+
+        function extractSqlMetadata(sql) {
+            const tables = new Map();
+
+            function ensureTable(rawName) {
+                const tableName = cleanSqlIdentifier(rawName);
+                const key = normalize(tableName);
+                if (!key) {
+                    return null;
+                }
+                if (!tables.has(key)) {
+                    tables.set(key, { name: tableName, columns: new Set(), inserts: 0 });
+                }
+                return tables.get(key);
+            }
+
+            let currentCreate = null;
+            for (const rawLine of sql.split(/\r?\n/)) {
+                const line = rawLine.replace(/--.*$/, "").trim();
+                const createMatch = line.match(/^CREATE\s+TABLE\s+([^\s(]+)/i);
+                if (createMatch) {
+                    currentCreate = ensureTable(createMatch[1]);
+                    continue;
+                }
+                if (!currentCreate) {
+                    continue;
+                }
+                if (line.startsWith(")") || /^GO\b/i.test(line)) {
+                    currentCreate = null;
+                    continue;
+                }
+                if (/^(CONSTRAINT|PRIMARY|FOREIGN|CHECK|UNIQUE|KEY)\b/i.test(line)) {
+                    continue;
+                }
+                const columnMatch = line.match(/^(\[[^\]]+\]|"[^"]+"|[A-Za-z_][\w#]*)\s+/);
+                if (columnMatch) {
+                    currentCreate.columns.add(cleanSqlIdentifier(columnMatch[1]));
+                }
+            }
+
+            const insertRegex = /INSERT\s+(?:INTO\s+)?((?:\[[^\]]+\]|"[^"]+"|[\w#]+)(?:\s*\.\s*(?:\[[^\]]+\]|"[^"]+"|[\w#]+)){0,2})\s*(?:\(([^;]*?)\))?/gi;
+            let insertMatch = insertRegex.exec(sql);
+            while (insertMatch) {
+                const table = ensureTable(insertMatch[1]);
+                if (table) {
+                    table.inserts += 1;
+                    for (const column of splitSqlColumns(insertMatch[2] || "")) {
+                        table.columns.add(column);
+                    }
+                }
+                insertMatch = insertRegex.exec(sql);
+            }
+
+            return { tables };
+        }
+
+        function renderColumnPills(columns) {
+            return columns.length
+                ? columns.map((column) => `<span class="column-pill">${escapeHtml(column)}</span>`).join("")
+                : "<span>No detecté columnas explícitas.</span>";
+        }
+
+        function analyzeProfessorSql() {
+            const sql = elements.professorSqlInput.value.trim();
+            if (!sql) {
+                elements.scriptAnalysis.innerHTML = `<div class="empty">Pegá o cargá el archivo SQL y presioná “Analizar script”.</div>`;
+                localStorage.removeItem("professorSqlScript");
+                return;
+            }
+
+            localStorage.setItem("professorSqlScript", sql);
+            const metadata = extractSqlMetadata(sql);
+            const detectedTables = [...metadata.tables.values()].sort((a, b) => a.name.localeCompare(b.name));
+            const expectedRows = expectedTables.map((expected) => {
+                const found = metadata.tables.get(normalize(expected.name));
+                const detectedColumns = found ? [...found.columns] : [];
+                const status = found ? `Detectada (${found.inserts} INSERT${found.inserts === 1 ? "" : "s"})` : "No detectada";
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(expected.name)}</strong></td>
+                        <td>${escapeHtml(status)}</td>
+                        <td>${renderColumnPills(detectedColumns)}</td>
+                        <td>${renderColumnPills(expected.columns)}</td>
+                    </tr>
+                `;
+            }).join("");
+            const extraTables = detectedTables
+                .filter((table) => !expectedTables.some((expected) => normalize(expected.name) === normalize(table.name)))
+                .map((table) => `${table.name} (${table.inserts} INSERT${table.inserts === 1 ? "" : "s"})`);
+
+            elements.scriptAnalysis.innerHTML = `
+                <div class="status-note">
+                    Detecté ${detectedTables.length} tabla${detectedTables.length === 1 ? "" : "s"} en el script.
+                    Usá esta comparación para ajustar nombres de columnas si tu archivo difiere del modelo base.
+                </div>
+                <div style="overflow:auto;">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Tabla esperada</th>
+                                <th>Estado en el script</th>
+                                <th>Columnas detectadas</th>
+                                <th>Columnas usadas en la guía</th>
+                            </tr>
+                        </thead>
+                        <tbody>${expectedRows}</tbody>
+                    </table>
+                </div>
+                ${extraTables.length ? `<div class="tip"><strong>Tablas extra detectadas:</strong> ${escapeHtml(extraTables.join(", "))}</div>` : ""}
+            `;
+        }
+
+        function renderCategories() {
+            const categories = ["Todos", ...new Set(exercises.map((exercise) => exercise.category))];
+            elements.categoryChips.innerHTML = categories.map((category) => `
+                <button class="chip ${state.category === category ? "active" : ""}" data-category="${escapeHtml(category)}">
+                    ${escapeHtml(category)}
+                </button>
+            `).join("");
+        }
+
+        function renderList() {
+            const list = filteredExercises();
+            elements.exerciseList.innerHTML = list.length
+                ? list.map((exercise) => `
+                    <button class="nav-item ${exercise.id === state.selectedId ? "active" : ""} ${state.completed.has(exercise.id) ? "done" : ""}" data-id="${exercise.id}">
+                        <span class="nav-number">${exercise.id}</span>
+                        <span class="nav-title">${escapeHtml(exercise.title)}</span>
+                        <span class="done-dot" aria-hidden="true"></span>
+                    </button>
+                `).join("")
+                : `<div class="empty">No encontré ejercicios con ese filtro.</div>`;
+        }
+
+        function renderDetail() {
+            const exercise = exercises.find((item) => item.id === state.selectedId) || exercises[0];
+            const isDone = state.completed.has(exercise.id);
+            elements.exerciseDetail.innerHTML = `
+                <div class="detail-head">
+                    <div>
+                        <span class="tag">Punto ${exercise.id} - ${escapeHtml(exercise.category)}</span>
+                        <h3 class="detail-title">${escapeHtml(exercise.title)}</h3>
+                    </div>
+                    <button class="complete-toggle" id="completeToggle" aria-pressed="${isDone}">
+                        ${isDone ? "Completado" : "Marcar completado"}
+                    </button>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-box">
+                        <b>Qué pide</b>
+                        <span>${escapeHtml(exercise.task)}</span>
+                    </div>
+                    <div class="info-box">
+                        <b>Tema clave</b>
+                        <span>${escapeHtml(exercise.focus)}</span>
+                    </div>
+                    <div class="info-box">
+                        <b>Idea para entenderlo</b>
+                        <span>${escapeHtml(exercise.explanation)}</span>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <div class="code-toolbar">
+                        <span>SQL Server - punto ${exercise.id}</span>
+                        <button class="copy-btn" data-copy="${escapeHtml(exercise.sql)}">Copiar SQL</button>
+                    </div>
+                    <pre><code>${escapeHtml(exercise.sql)}</code></pre>
+                </div>
+
+                <div class="tip"><strong>Tip:</strong> ${escapeHtml(exercise.tip)}</div>
+
+                <h3>Checklist de práctica</h3>
+                <ul class="checklist">
+                    ${exercise.checklist.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+                </ul>
+            `;
+        }
+
+        function selectExercise(id, scrollToDetail = true) {
+            state.selectedId = Number(id);
+            renderList();
+            renderDetail();
+            if (scrollToDetail) {
+                document.getElementById("detalle").scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
+
+        async function copyText(text, button) {
+            try {
+                await navigator.clipboard.writeText(text);
+                const original = button.textContent;
+                button.textContent = "Copiado";
+                setTimeout(() => {
+                    button.textContent = original;
+                }, 1200);
+            } catch (error) {
+                const textarea = document.createElement("textarea");
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand("copy");
+                textarea.remove();
+            }
+        }
+
+        function renderFlashcard() {
+            const card = flashcards[state.flashIndex];
+            elements.flashTag.textContent = card.tag;
+            elements.flashQuestion.textContent = card.question;
+            elements.flashHint.textContent = card.hint;
+            elements.flashAnswer.textContent = card.answer;
+            elements.flashAnswer.classList.remove("visible");
+        }
+
+        elements.setupSql.textContent = setupSql;
+
+        document.addEventListener("click", (event) => {
+            const navItem = event.target.closest(".nav-item");
+            if (navItem) {
+                selectExercise(navItem.dataset.id);
+                return;
+            }
+
+            const chip = event.target.closest("[data-category]");
+            if (chip) {
+                state.category = chip.dataset.category;
+                renderCategories();
+                renderList();
+                return;
+            }
+
+            const copyButton = event.target.closest("[data-copy]");
+            if (copyButton) {
+                copyText(copyButton.dataset.copy, copyButton);
+                return;
+            }
+
+            const copyTargetButton = event.target.closest("[data-copy-target]");
+            if (copyTargetButton) {
+                const target = document.getElementById(copyTargetButton.dataset.copyTarget);
+                copyText(target.textContent, copyTargetButton);
+                return;
+            }
+
+            if (event.target.id === "completeToggle") {
+                const id = state.selectedId;
+                if (state.completed.has(id)) {
+                    state.completed.delete(id);
+                } else {
+                    state.completed.add(id);
+                }
+                saveCompleted();
+                updateProgress();
+                renderList();
+                renderDetail();
+            }
+        });
+
+        elements.searchInput.addEventListener("input", (event) => {
+            state.query = event.target.value;
+            renderList();
+        });
+
+        elements.startBtn.addEventListener("click", () => selectExercise(1));
+
+        elements.showAnswerBtn.addEventListener("click", () => {
+            elements.flashAnswer.classList.toggle("visible");
+        });
+
+        elements.nextFlashBtn.addEventListener("click", () => {
+            state.flashIndex = (state.flashIndex + 1) % flashcards.length;
+            renderFlashcard();
+        });
+
+        elements.analyzeProfessorSqlBtn.addEventListener("click", analyzeProfessorSql);
+
+        elements.clearProfessorSqlBtn.addEventListener("click", () => {
+            elements.professorSqlInput.value = "";
+            elements.professorSqlFile.value = "";
+            analyzeProfessorSql();
+        });
+
+        elements.professorSqlFile.addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            const reader = new FileReader();
+            reader.addEventListener("load", () => {
+                elements.professorSqlInput.value = String(reader.result || "");
+                analyzeProfessorSql();
+            });
+            reader.readAsText(file);
+        });
+
+        const savedProfessorSql = localStorage.getItem("professorSqlScript");
+        if (savedProfessorSql) {
+            elements.professorSqlInput.value = savedProfessorSql;
+            analyzeProfessorSql();
+        }
+
+        renderCategories();
+        renderList();
+        renderDetail();
+        renderFlashcard();
+        updateProgress();
+    </script>
+</body>
+</html>
